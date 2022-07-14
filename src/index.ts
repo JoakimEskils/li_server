@@ -2,23 +2,20 @@ import { MikroORM } from "@mikro-orm/core";
 import { __prod__ } from "./constants";
 import { Post } from "./entities/Post";
 import dotenv from 'dotenv'
+import microConfig from './mikro-orm.config'
 
 dotenv.config()
 
-console.log("jek");
-console.log(process.env.DB_PASS);
 const main = async () => {
-    const orm = await MikroORM.init({
-        entities: [Post],
-        dbName: 'liserver',
-        type: 'postgresql',
-        debug: !__prod__,
-        user: 'postgres',
-        password: process.env.DB_PASS
-    });
+    const orm = await MikroORM.init(microConfig); // Connect to DB
+    orm.getMigrator().up(); // Run migration
+    //const post = orm.em.create(Post, {title: 'my first post'}) // Create post
+    //await orm.em.persistAndFlush(post); // Persist post
 
-    const post = orm.em.create(Post, {title: 'my first post'})
-    await orm.em.persistAndFlush(post);
+    //const posts = await orm.em.find(Post, {});
+    //console.log(posts)
 }
 
-main();
+main().catch((err) => {
+    console.error(err);
+});
