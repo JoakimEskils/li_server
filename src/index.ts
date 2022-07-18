@@ -7,6 +7,7 @@ import {ApolloServer} from 'apollo-server-express'
 import {buildSchema} from 'type-graphql';
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
+import { UserResolver } from "./resolvers/user";
 
 dotenv.config()
 
@@ -14,11 +15,14 @@ const main = async () => {
     const orm = await MikroORM.init(microConfig); // Connect to DB
     orm.getMigrator().up(); // Run migration
 
+    const generator = orm.getSchemaGenerator();
+    await generator.updateSchema();
+
     const app = express();
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver],
+            resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false
         }),
         context: () => ({ em: orm.em })
