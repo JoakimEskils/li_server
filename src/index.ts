@@ -11,6 +11,7 @@ import { UserResolver } from "./resolvers/user";
 import session from 'express-session';
 import connectRedis from 'connect-redis'
 import { MyContext } from "./types";
+import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core" 
 
 dotenv.config()
 
@@ -23,9 +24,9 @@ const main = async () => {
 
     const app = express(); 
 
-    app.set("trust proxy", !__prod__);
-    app.set("Access-Control-Allow-Origin", "https://studio.apollographql.com");
-    app.set("Access-Control-Allow-Credentials", true);
+    //app.set("trust proxy", !__prod__);
+    //app.set("Access-Control-Allow-Origin", "https://studio.apollographql.com");
+    //app.set("Access-Control-Allow-Credentials", true);
 
     const RedisStore = connectRedis(session)
     const { createClient } = require("redis")
@@ -57,15 +58,17 @@ const main = async () => {
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false
         }),
-        context: ({ req, res}): MyContext => ({ em: orm.em, req, res })
+        context: ({ req, res}): MyContext => ({ em: orm.em, req, res }),
+        plugins: [
+            // check if prod then go to langingpageprod, see docs
+            ApolloServerPluginLandingPageLocalDefault({ embed: true })
+        ]
     });
 
     await apolloServer.start();
 
-    const cors = { credentials: true, origin: 'https://studio.apollographql.com' }
+    apolloServer.applyMiddleware({ app });
 
-    apolloServer.applyMiddleware({ app, cors });
- 
     app.listen(4000, () => {
         console.log('server started on localhos:4000')
     })
