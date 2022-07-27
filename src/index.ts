@@ -1,79 +1,80 @@
 import { MikroORM } from "@mikro-orm/core";
-import { __prod__ } from "./constants";
-import dotenv from 'dotenv'
-import microConfig from './mikro-orm.config'
-import express from 'express'
-import {ApolloServer} from 'apollo-server-express'
-import {buildSchema} from 'type-graphql';
+import microConfig from "./mikro-orm.config";
+import express from "express";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/user";
-import session from 'express-session';
-import connectRedis from 'connect-redis'
-import { MyContext } from "./types";
-import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core" 
-
-dotenv.config()
+import {__prod__} from "./constants";
+import session from "express-session";
+import connectRedis from "connect-redis";
+import "reflect-metadata";
 
 const main = async () => {
-    const orm = await MikroORM.init(microConfig); // Connect to DB
-    orm.getMigrator().up(); // Run migration
+  const orm = await MikroORM.init(microConfig);
+  await orm.getMigrator().up();
+  const app = express();
 
-    const generator = orm.getSchemaGenerator();
-    await generator.updateSchema();
+  const { createClient } = require('redis')
 
-    const app = express(); 
+  const RedisStore = connectRedis(session);
+  const redisClient = createClient({ legacyMode: true });
 
-    //app.set("trust proxy", !__prod__);
-    //app.set("Access-Control-Allow-Origin", "https://studio.apollographql.com");
-    //app.set("Access-Control-Allow-Credentials", true);
+  await redisClient.connect();
 
-    const RedisStore = connectRedis(session)
-    const { createClient } = require("redis")
-   
-    let redisClient = createClient({ legacyMode: true })
-    redisClient.connect().catch(console.error)
-
-    app.use(
-        session({
-            name: 'qid',
-            store: new RedisStore({ 
-                client: redisClient,
-                disableTouch: true
-            }),
-            cookie: {
-                maxAge: 1000 * 60 * 60 * 24 * 365 * 5,
-                httpOnly: true,
-                sameSite: 'lax',
-                secure: true
-            },
-            saveUninitialized: false,
-            secret: 'asdasdasd',
-            resave: false,
-        })
-    )
-
-    const apolloServer = new ApolloServer({
-        schema: await buildSchema({
-            resolvers: [HelloResolver, PostResolver, UserResolver],
-            validate: false
-        }),
-        context: ({ req, res}): MyContext => ({ em: orm.em, req, res }),
-        plugins: [
-            // check if prod then go to langingpageprod, see docs
-            ApolloServerPluginLandingPageLocalDefault({ embed: true })
-        ]
-    });
-
-    await apolloServer.start();
-
-    apolloServer.applyMiddleware({ app });
-
-    app.listen(4000, () => {
-        console.log('server started on localhos:4000')
+  const appSession = session({
+    name: "qid",
+    secret: "shhecret",
+    resave: false,
+    saveUninitialized: false,
+    store: new RedisStore({
+      client: redisClient,
     })
-}
+    ,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+      secure: true,
+      httpOnly: false,
+      sameSite: "none",
+    },
+  })
+
+  app.use(appSession);
+
+  app.set("trust proxy", !__prod__);
+  app.set("Access-Control-Allow-Origin", "https://studio.apollographql.com");
+  app.set("Access-Control-Allow-Credentials", true)
+
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver, PostResolver, UserResolver],
+      validate: false,
+    }),
+    context: ({ res, req }) => ({ em: orm.em, res, req }),
+    introspection: !__prod__,
+  });
+
+  await apolloServer.start();
+
+  apolloServer.applyMiddleware({
+    app,
+    cors: {
+      origin: ["https://studio.apollographql.com", "http://localhost:4000"],
+      credentials: true,
+    },
+  });
+
+  app.get("/hello", (_, res) => {
+    res.send("Hello World");
+  });
+
+  app.listen(4000, () => {
+    console.log("server started on localhost:4000");
+  });
+};
+
 
 main().catch((err) => {
-    console.error(err);
-});
+  console.error(err);
+})
