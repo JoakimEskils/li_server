@@ -1,0 +1,28 @@
+{
+  "name": "bugtracker-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "runbuild": "npm run build",
+    "dev": "next dev",
+    "dev2": "nodemon",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "12.2.3",
+    "nodemon": "^2.0.19",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "18.6.2",
+    "@types/react": "18.0.15",
+    "@types/react-dom": "18.0.6",
+    "eslint": "8.20.0",
+    "eslint-config-next": "12.2.3",
+    "typescript": "4.7.4"
+  }
+}

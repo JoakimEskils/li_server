@@ -1,0 +1,5 @@
+{
+  "watch": ["pages"],
+  "ext": "ts,tsx,json",
+  "exec": "ts-node pages/index.tsx"
+}
