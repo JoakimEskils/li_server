@@ -11,31 +11,22 @@ const register: React.FC<registerProps> = ({}) => {
             <h1>Sign Up</h1>
             <Formik
             initialValues={{
-                firstName: '',
-                lastName: '',
-                email: '',
+                username: '',
+                password: '',
             }}
             onSubmit={async (values) => {
-                await new Promise((r) => setTimeout(r, 500));
-                alert(JSON.stringify(values, null, 2));
+                console.log(values)
             }}
             >
-            <Form>
-                <label htmlFor="firstName">First Name</label>
-                <Field id="firstName" name="firstName" placeholder="Jane" />
-
-                <label htmlFor="lastName">Last Name</label>
-                <Field id="lastName" name="lastName" placeholder="Doe" />
-
-                <label htmlFor="email">Email</label>
-                <Field
-                id="email"
-                name="email"
-                placeholder="jane@acme.com"
-                type="email"
-                />
-                <button type="submit">Submit</button>
-            </Form>
+            {({values, handleChange }) => (
+                <Form>
+                    <label htmlFor="firstName">Username</label>
+                    <Field value={values.username} onChange={handleChange} id="firstName" name="username" placeholder="Jane" />
+                    <label htmlFor="firstName">Password</label>
+                    <Field value={values.password} onChange={handleChange} id="firstName" name="password" type="password" placeholder="Jane" />
+                    <button type="submit">Submit</button>
+                </Form> 
+            )}
             </Formik>
             </div>
         );
