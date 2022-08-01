@@ -1,27 +1,14 @@
 import React from 'react'
 import { Formik, Field, Form } from 'formik';
 import { useMutation } from 'urql';
+import { useRegisterMutation } from "../src/generated/graphql"; 
 
 interface registerProps {
 
 }
 
-const REGISTER_MUT = (`
-    mutation Register($username: String!, $password: String!) {
-        register(options: { username: $username, password: $password }) {
-            errors {
-                field
-                message
-            }
-            user {
-                id
-                username
-            }
-        }
-    }
-    `)
 const register: React.FC<registerProps> = ({}) => {
-    const [,register] = useMutation(REGISTER_MUT)
+    const [,register] = useRegisterMutation();
 
         return (
             <div>
@@ -33,7 +20,7 @@ const register: React.FC<registerProps> = ({}) => {
             }}
             onSubmit={async (values) => {
                 console.log(values)
-                register(values);
+                const response = await register(values);
             }}
             >
             {({values, handleChange }) => (

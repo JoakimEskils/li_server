@@ -8,7 +8,8 @@
     "dev2": "nodemon",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "formik": "^2.2.9",
@@ -21,6 +22,11 @@
     "urql": "^2.2.3"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "2.11.3",
+    "@graphql-codegen/typescript": "2.7.2",
+    "@graphql-codegen/typescript-operations": "2.5.2",
+    "@graphql-codegen/typescript-react-apollo": "3.3.2",
+    "@graphql-codegen/typescript-urql": "^3.6.3",
     "@types/node": "18.6.2",
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
