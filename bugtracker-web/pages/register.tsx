@@ -2,12 +2,15 @@ import React from 'react'
 import { Formik, Field, Form } from 'formik';
 import { useMutation } from 'urql';
 import { useRegisterMutation } from "../src/generated/graphql"; 
+import { toErrorMap } from "../utils/toErrorMap"
+import { useRouter } from 'next/router';
 
 interface registerProps {
 
 }
 
 const register: React.FC<registerProps> = ({}) => {
+    const router = useRouter();
     const [,register] = useRegisterMutation();
 
         return (
@@ -18,9 +21,15 @@ const register: React.FC<registerProps> = ({}) => {
                 username: '',
                 password: '',
             }}
-            onSubmit={async (values) => {
+            onSubmit={async (values, { setErrors }) => {
                 console.log(values)
                 const response = await register(values);
+                if (response.data?.register.errors) {
+                    console.log("error")
+                    setErrors(toErrorMap(response.data.register.errors))
+                } else if (response.data?.register.user) {
+                    router.push("/");
+                }
             }}
             >
             {({values, handleChange }) => (
