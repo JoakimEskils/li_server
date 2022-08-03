@@ -1,3 +1,5 @@
+Need .env file with postgres password
+
 backend:
 yarn watch
 yarn dev
