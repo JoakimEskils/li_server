@@ -10,6 +10,9 @@ import {__prod__} from "./constants";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import "reflect-metadata";
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 const main = async () => {
   const orm = await MikroORM.init(microConfig);
@@ -24,7 +27,7 @@ const main = async () => {
   await redisClient.connect();
 
   const appSession = session({
-    name: "qid",
+    name: String(process.env.COOKIE_NAME),
     secret: "shhecret",
     resave: false,
     saveUninitialized: false,

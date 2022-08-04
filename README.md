@@ -1,4 +1,6 @@
 Need .env file with postgres password
+DB_PASS=''
+COOKIE_NAME=''
 
 backend:
 yarn watch
