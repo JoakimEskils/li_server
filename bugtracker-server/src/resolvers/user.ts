@@ -13,6 +13,8 @@ class UsernamePasswordInput {
     username: string
     @Field()
     password: string
+    @Field()
+    email: string
 }
 
 @ObjectType()
@@ -36,7 +38,7 @@ class UserResponse {
 export class UserResolver {
     @Query(() => User, {nullable: true})
     async me(
-        @Ctx() { req, em }: MyContext
+        @Ctx() { req }: MyContext
     ) {
         // not logged in
         if (!req.session.userId) {
@@ -44,14 +46,13 @@ export class UserResolver {
             return null
         }
 
-        const user = await em.findOne(User, {id: req.session.userId});
-        return user;
+        return User.findOne({ where: {id: req.session.userId}});
     }
 
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() {em}: MyContext
+        @Ctx() { conn }: MyContext
     ): Promise<UserResponse> {
         if (options.username.length <= 2) {
             return {
@@ -72,17 +73,16 @@ export class UserResolver {
         const hashedPassword = await argon2.hash(options.password);
         let user; 
         try {
-            const result = await (em as EntityManager)
-            .createQueryBuilder(User)
-            .getKnexQuery()
-            .insert({
+            const result = await conn.createQueryBuilder().insert().into(User).values(
+            {
                 username: options.username,
                 password: hashedPassword,
-                created_at: new Date(),
-                updated_at: new Date()
-            })
-            .returning("*");
-            user = result[0];
+                email: options.email
+            }
+            )
+            .returning('*')
+            .execute;
+            console.log("result: ", result);
         } catch(err) {
             if (err.code === '23505'  || err.detail.includes("already exists")) {
                 // duplicate username error
@@ -102,9 +102,9 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async login(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() {em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
-        const user = await em.findOne(User, { username: options.username.toLowerCase() });
+        const user = await User.findOne({where: {username: options.username.toLowerCase()}});
         if (!user) {
             return {
                 errors: [

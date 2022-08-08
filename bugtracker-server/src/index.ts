@@ -70,7 +70,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ res, req }) => ({ em: orm.em, res, req }),
+    context: ({ res, req }) => ({ res, req, conn }),
     introspection: !__prod__,
   });
 
