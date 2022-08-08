@@ -2,7 +2,6 @@ import { User } from "../entities/User";
 import { MyContext } from "src/types";
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import argon2 from 'argon2';
-import { EntityManager} from '@mikro-orm/postgresql';
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -52,8 +51,9 @@ export class UserResolver {
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() { conn }: MyContext
+        @Ctx() { datasource }: MyContext
     ): Promise<UserResponse> {
+        console.log("start registering")
         if (options.username.length <= 2) {
             return {
                 errors: [{
@@ -73,7 +73,8 @@ export class UserResolver {
         const hashedPassword = await argon2.hash(options.password);
         let user; 
         try {
-            const result = await conn.createQueryBuilder().insert().into(User).values(
+            console.log("try execute insert: ", options)
+            const result = await datasource.createQueryBuilder().insert().into(User).values(
             {
                 username: options.username,
                 password: hashedPassword,
@@ -81,18 +82,19 @@ export class UserResolver {
             }
             )
             .returning('*')
-            .execute;
-            console.log("result: ", result);
+            .execute();
+            user = result.raw[0]
         } catch(err) {
-            if (err.code === '23505'  || err.detail.includes("already exists")) {
+            console.log("error registering: ", err);
+            //if (err.code === '23505'  || err.detail.includes("already exists")) {
                 // duplicate username error
                 return {
                     errors: [{
                         field: "username",
-                        message: "username already taken"
+                        message: err
                     }]
                 }
-            }
+          //  }
         }
         return {
             user

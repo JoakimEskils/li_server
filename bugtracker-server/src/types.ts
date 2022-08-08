@@ -1,4 +1,3 @@
-import { IDatabaseDriver, Connection, EntityManager } from "@mikro-orm/core"
 import { Request, Response } from 'express'
 import { Redis } from "ioredis"
 import { Session, SessionData } from "express-session";
@@ -10,5 +9,5 @@ export type MyContext = {
     };
     redis: Redis;
     res: Response;
-    conn: DataSource;
+    datasource: DataSource;
 }

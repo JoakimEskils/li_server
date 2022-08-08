@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
@@ -7,7 +8,6 @@ import { UserResolver } from "./resolvers/user";
 import {__prod__} from "./constants";
 import session from "express-session";
 import connectRedis from "connect-redis";
-import "reflect-metadata";
 import dotenv from 'dotenv'
 import { DataSource } from 'typeorm';
 import { Post } from "./entities/Post";
@@ -33,6 +33,7 @@ const main = async () => {
         glob: '!(*.d).{js,ts}',
     }
 })
+  const datasource = await conn.initialize()
   const app = express();
 
   const { createClient } = require('redis')
@@ -70,7 +71,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ res, req }) => ({ res, req, conn }),
+    context: ({ res, req }) => ({ res, req, datasource }),
     introspection: !__prod__,
   });
 
